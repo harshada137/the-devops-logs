@@ -13,19 +13,6 @@ I started this repository to:
 - Prepare for interviews
 - Share learnings publicly so others can learn with me
 
-## Topics Covered
-
-- Linux
-- Docker
-- Kubernetes
-- AWS
-- Jenkins
-- Terraform
-- Networking
-- Monitoring
-- Shell Scripting
-- CI/CD
-- Troubleshooting
 
 ## What You’ll Find Here
 
@@ -51,3 +38,4 @@ To build strong DevOps fundamentals one day at a time ☁️
 
 ---
 ⭐ Feel free to explore, learn, and contribute.
+
