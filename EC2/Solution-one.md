@@ -2,7 +2,7 @@
 
 # Objective
 
-Launch a production-ready EC2 instance by following AWS best practices for security, monitoring, availability, and management.
+> Launch a production-ready EC2 instance by following AWS best practices for security, monitoring, availability, and management.
 
 ---
 
@@ -24,7 +24,7 @@ Launch a production-ready EC2 instance by following AWS best practices for secur
 
 ### Why?
 
-A custom VPC provides complete control over networking instead of using the default VPC. It allows better security, subnet planning, and scalability.
+> A custom VPC provides complete control over networking instead of using the default VPC. It allows better security, subnet planning, and scalability.
 
 ---
 
@@ -45,7 +45,7 @@ A custom VPC provides complete control over networking instead of using the defa
 
 ### Why?
 
-The EC2 instance needs internet connectivity, so it is placed inside a public subnet.
+> The EC2 instance needs internet connectivity, so it is placed inside a public subnet.
 
 ---
 
@@ -63,7 +63,7 @@ prod-igw
 
 ### Why?
 
-The Internet Gateway allows resources inside the public subnet to communicate with the internet.
+> The Internet Gateway allows resources inside the public subnet to communicate with the internet.
 
 ---
 
@@ -85,7 +85,7 @@ The Internet Gateway allows resources inside the public subnet to communicate wi
 
 ### Why?
 
-Without this route, the instance cannot access the internet.
+> Without this route, the instance cannot access the internet.
 
 ---
 
@@ -112,7 +112,7 @@ EC2-Production-Role
 
 ### Why?
 
-IAM Roles eliminate the need for storing AWS Access Keys on the instance, improving security.
+> IAM Roles eliminate the need for storing AWS Access Keys on the instance, improving security.
 
 ---
 
@@ -136,7 +136,7 @@ Create a Security Group with the following rules.
 
 ### Why?
 
-Only the minimum required ports are opened following the Principle of Least Privilege.
+> Only the minimum required ports are opened following the Principle of Least Privilege.
 
 ---
 
@@ -160,19 +160,19 @@ Configure the instance as follows.
 
 ### Why Amazon Linux 2023?
 
-- Latest AWS-supported operating system
-- Improved security
-- Long-term support
-- Better package management
-- Optimized for AWS services
+> - Latest AWS-supported operating system
+> - Improved security
+> - Long-term support
+> - Better package management
+> - Optimized for AWS services
 
 ### Why t3.medium?
 
-- 2 vCPUs
-- 4 GB RAM
-- Suitable for small production web applications
-- Cost-effective
-- Burstable performance
+> - 2 vCPUs
+> - 4 GB RAM
+> - Suitable for small production web applications
+> - Cost-effective
+> - Burstable performance
 
 ---
 
@@ -192,7 +192,7 @@ Encryption = Enabled
 
 ### Why?
 
-Encryption protects data at rest and satisfies security and compliance requirements.
+> Encryption protects data at rest and satisfies security and compliance requirements.
 
 ---
 
@@ -208,7 +208,7 @@ Detailed CloudWatch Monitoring
 
 ### Why?
 
-Detailed monitoring provides metrics every 1 minute instead of every 5 minutes, enabling faster issue detection.
+> Detailed monitoring provides metrics every 1 minute instead of every 5 minutes, enabling faster issue detection.
 
 ---
 
@@ -229,7 +229,7 @@ Actions
 
 ### Why?
 
-Prevents accidental deletion of production servers.
+> Prevents accidental deletion of production servers.
 
 ---
 
