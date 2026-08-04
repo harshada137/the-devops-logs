@@ -428,4 +428,4 @@ cat /etc/fstab
 
 # Final Outcome
 
-Successfully expanded the storage of a running EC2 instance by attaching a new EBS volume without downtime. The volume was formatted, mounted permanently, application data was migrated successfully, an EBS snapshot was created, restored as a new volume, and the restored data was verified.
+> Successfully expanded the storage of a running EC2 instance by attaching a new EBS volume without downtime. The volume was formatted, mounted permanently, application data was migrated successfully, an EBS snapshot was created, restored as a new volume, and the restored data was verified.
