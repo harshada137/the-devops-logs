@@ -1,8 +1,8 @@
-# Task 3 – Secure and Harden an EC2 Instance
+# Task 3 – Secure and Harden an EC2 Instance (Solution)
 
-## Objective
+# Objective
 
-Apply operating system and AWS security best practices to harden an EC2 instance against unauthorized access and common attacks.
+> Apply operating system and AWS security best practices to harden an Amazon Linux 2023 EC2 instance against unauthorized access and common attacks.
 
 ---
 
@@ -15,32 +15,29 @@ Apply operating system and AWS security best practices to harden an EC2 instance
 
 ---
 
-# Step 1 – Check Current SSH Configuration
+# Step 1 – Check the Current SSH Configuration
 
-View the SSH daemon configuration.
+View the current SSH configuration.
 
 ```bash
-sudo grep -E "PasswordAuthentication|PermitRootLogin" /etc/ssh/sshd_config
+sudo grep -E "PasswordAuthentication|PermitRootLogin|PubkeyAuthentication" /etc/ssh/sshd_config
 ```
 
-Example Output:
+### Why?
 
-```
-#PasswordAuthentication yes
-#PermitRootLogin yes
-```
+> Reviewing the existing SSH configuration helps identify insecure settings before applying security hardening.
 
 ---
 
 # Step 2 – Disable Password Authentication
 
-Edit the SSH configuration.
+Edit the SSH configuration file.
 
 ```bash
 sudo nano /etc/ssh/sshd_config
 ```
 
-Find or add the following:
+Update or add the following settings:
 
 ```text
 PasswordAuthentication no
@@ -50,25 +47,33 @@ UsePAM yes
 
 Save the file.
 
+### Why?
+
+> Disabling password authentication prevents brute-force password attacks and ensures only users with the private SSH key can access the instance.
+
 ---
 
-# Step 3 – Allow Only Key-Based Authentication
+# Step 3 – Enable Key-Based Authentication
 
-Ensure the following setting exists:
+Verify that public key authentication is enabled.
 
 ```text
 PubkeyAuthentication yes
 ```
 
-Verify:
+Verify the configuration.
 
 ```bash
 grep PubkeyAuthentication /etc/ssh/sshd_config
 ```
 
+### Why?
+
+> Key-based authentication is more secure than password authentication because it relies on cryptographic keys.
+
 ---
 
-# Step 4 – Disable Direct Root SSH Login
+# Step 4 – Disable Direct Root Login
 
 Edit the SSH configuration.
 
@@ -76,15 +81,19 @@ Edit the SSH configuration.
 sudo nano /etc/ssh/sshd_config
 ```
 
-Set:
+Set the following value.
 
 ```text
 PermitRootLogin no
 ```
 
+### Why?
+
+> Preventing direct root login reduces the risk of unauthorized administrative access.
+
 ---
 
-# Step 5 – Create a Non-Root Administrative User
+# Step 5 – Create a Dedicated Administrative User
 
 Create a new user.
 
@@ -92,7 +101,7 @@ Create a new user.
 sudo adduser adminuser
 ```
 
-Set a password (optional for console login).
+(Optional) Set a password.
 
 ```bash
 sudo passwd adminuser
@@ -104,7 +113,7 @@ Grant sudo privileges.
 sudo usermod -aG wheel adminuser
 ```
 
-Verify:
+Verify.
 
 ```bash
 groups adminuser
@@ -112,13 +121,17 @@ groups adminuser
 
 Expected Output:
 
-```
+```text
 adminuser : adminuser wheel
 ```
 
+### Why?
+
+> Using a dedicated administrative user follows the Principle of Least Privilege and improves accountability.
+
 ---
 
-# Step 6 – Copy SSH Key to the New User
+# Step 6 – Copy the SSH Key
 
 Create the SSH directory.
 
@@ -132,42 +145,50 @@ Copy the authorized key.
 sudo cp ~/.ssh/authorized_keys /home/adminuser/.ssh/
 ```
 
-Set ownership.
+Update ownership.
 
 ```bash
 sudo chown -R adminuser:adminuser /home/adminuser/.ssh
 ```
 
-Set permissions.
+Set the required permissions.
 
 ```bash
 sudo chmod 700 /home/adminuser/.ssh
 sudo chmod 600 /home/adminuser/.ssh/authorized_keys
 ```
 
+### Why?
+
+> The new user must have the same authorized public key to securely access the instance using SSH.
+
 ---
 
 # Step 7 – Test the New User
 
-Open a new terminal.
+Open a new terminal and connect using the new user.
 
 ```bash
 ssh -i my-key.pem adminuser@<Public-IP>
 ```
 
-Ensure login is successful before closing the original session.
+Verify the login before closing the original SSH session.
+
+### Why?
+
+> Testing ensures the new user can successfully authenticate before disabling the existing administrative access.
 
 ---
 
-# Step 8 – Restart SSH Service
+# Step 8 – Restart the SSH Service
 
-Restart SSH to apply changes.
+Restart the SSH daemon.
 
 ```bash
 sudo systemctl restart sshd
 ```
 
-Check status.
+Verify the service.
 
 ```bash
 sudo systemctl status sshd
@@ -175,17 +196,19 @@ sudo systemctl status sshd
 
 Expected Output:
 
-```
+```text
 Active: active (running)
 ```
+
+### Why?
+
+> Restarting the SSH service applies the updated security configuration.
 
 ---
 
 # Step 9 – Configure Automatic Security Updates
 
-Amazon Linux 2023 uses **dnf**.
-
-Install automatic update package.
+Install the automatic update package.
 
 ```bash
 sudo dnf install -y dnf-automatic
@@ -197,7 +220,7 @@ Enable automatic updates.
 sudo systemctl enable --now dnf-automatic.timer
 ```
 
-Verify.
+Verify the service.
 
 ```bash
 systemctl status dnf-automatic.timer
@@ -205,9 +228,13 @@ systemctl status dnf-automatic.timer
 
 Expected Output:
 
-```
+```text
 Active: active (waiting)
 ```
+
+### Why?
+
+> Automatic updates ensure that important security patches are installed regularly.
 
 ---
 
@@ -215,27 +242,31 @@ Active: active (waiting)
 
 Navigate to:
 
-```
+```text
 AWS Console
 → EC2
 → Security Groups
 ```
 
-Recommended Inbound Rules
+Configure the inbound rules.
 
 | Port | Protocol | Source | Purpose |
 |------|----------|---------|----------|
-|22|TCP|Your Public IP (/32)|SSH|
-|80|TCP|0.0.0.0/0|HTTP|
-|443|TCP|0.0.0.0/0|HTTPS|
+| 22 | TCP | Your Public IP (/32) | SSH |
+| 80 | TCP | 0.0.0.0/0 | HTTP |
+| 443 | TCP | 0.0.0.0/0 | HTTPS |
 
-Remove unnecessary ports such as:
+Remove any unnecessary inbound rules such as:
 
-- 21 (FTP)
-- 23 (Telnet)
-- 3389 (RDP) if not required
-- 3306 (MySQL) exposed to the Internet
-- 5432 (PostgreSQL) exposed publicly
+- FTP (21)
+- Telnet (23)
+- RDP (3389) if not required
+- MySQL (3306) exposed publicly
+- PostgreSQL (5432) exposed publicly
+
+### Why?
+
+> Restricting inbound access reduces the attack surface and follows AWS security best practices.
 
 ---
 
@@ -259,19 +290,19 @@ Enable the service.
 sudo systemctl enable --now fail2ban
 ```
 
-Create local configuration.
+Create a local configuration.
 
 ```bash
 sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 ```
 
-Edit.
+Edit the configuration.
 
 ```bash
 sudo nano /etc/fail2ban/jail.local
 ```
 
-Configure SSH protection.
+Configure the SSH jail.
 
 ```ini
 [sshd]
@@ -282,7 +313,7 @@ findtime = 10m
 bantime = 1h
 ```
 
-Restart.
+Restart the service.
 
 ```bash
 sudo systemctl restart fail2ban
@@ -294,95 +325,37 @@ Verify.
 sudo fail2ban-client status sshd
 ```
 
----
+### Why?
 
-## Note on AWS Best Practice
-
-While Fail2Ban provides host-level brute-force protection, AWS security best practices typically rely on:
-
-- Security Groups
-- AWS WAF
-- AWS Shield
-- IAM
-- AWS Systems Manager Session Manager (to eliminate SSH access)
-
-Fail2Ban is still acceptable for Linux server hardening and learning purposes.
+> Fail2Ban protects the server by temporarily blocking IP addresses after repeated failed login attempts.
 
 ---
 
-# Step 12 – Verify Security Configuration
+# Architecture Diagram
 
-Verify password authentication.
-
-```bash
-grep PasswordAuthentication /etc/ssh/sshd_config
-```
-
-Expected:
-
-```
-PasswordAuthentication no
+```text
+                     Internet
+                         │
+                 Security Group
+          (22 from My IP, 80, 443)
+                         │
+        ┌─────────────────────────────────┐
+        │      Amazon Linux 2023 EC2      │
+        │                                 │
+        │ SSH Key Authentication Enabled  │
+        │ Password Login Disabled         │
+        │ Root Login Disabled             │
+        │ Dedicated Admin User            │
+        │ Automatic Security Updates      │
+        │ Fail2Ban Enabled                │
+        └─────────────────────────────────┘
 ```
 
 ---
 
-Verify root login.
+# Configuration Files
 
-```bash
-grep PermitRootLogin /etc/ssh/sshd_config
-```
-
-Expected:
-
-```
-PermitRootLogin no
-```
-
----
-
-Verify new admin user.
-
-```bash
-id adminuser
-```
-
----
-
-Verify automatic updates.
-
-```bash
-systemctl status dnf-automatic.timer
-```
-
----
-
-Verify Fail2Ban.
-
-```bash
-sudo fail2ban-client status
-```
-
----
-
-Verify Security Group.
-
-AWS Console
-
-```
-EC2
-→ Security Groups
-→ Inbound Rules
-```
-
-Ensure only required ports are open.
-
----
-
-# Deliverables
-
-## Configuration Files
-
-### `/etc/ssh/sshd_config`
+## `/etc/ssh/sshd_config`
 
 ```text
 PasswordAuthentication no
@@ -394,7 +367,7 @@ UsePAM yes
 
 ---
 
-### `/etc/fail2ban/jail.local`
+## `/etc/fail2ban/jail.local`
 
 ```ini
 [sshd]
@@ -407,7 +380,102 @@ bantime = 1h
 
 ---
 
-## Commands Used
+# Verification
+
+## Verify Password Authentication
+
+```bash
+grep PasswordAuthentication /etc/ssh/sshd_config
+```
+
+Expected Output:
+
+```text
+PasswordAuthentication no
+```
+
+---
+
+## Verify Root Login
+
+```bash
+grep PermitRootLogin /etc/ssh/sshd_config
+```
+
+Expected Output:
+
+```text
+PermitRootLogin no
+```
+
+---
+
+## Verify New Administrative User
+
+```bash
+id adminuser
+```
+
+---
+
+## Verify SSH Service
+
+```bash
+systemctl status sshd
+```
+
+Expected:
+
+```text
+Active: active (running)
+```
+
+---
+
+## Verify Automatic Updates
+
+```bash
+systemctl status dnf-automatic.timer
+```
+
+Expected:
+
+```text
+Active: active (waiting)
+```
+
+---
+
+## Verify Fail2Ban
+
+```bash
+sudo fail2ban-client status sshd
+```
+
+Expected:
+
+```text
+Status for the jail: sshd
+Currently banned: 0
+```
+
+---
+
+## Verify Security Group
+
+Navigate to:
+
+```text
+EC2
+→ Security Groups
+→ Inbound Rules
+```
+
+Ensure only the required ports are open.
+
+---
+
+# Commands Used
 
 ```bash
 grep
@@ -432,109 +500,68 @@ groups
 
 | Feature | Before | After |
 |----------|---------|--------|
-|Password SSH Login|Enabled|Disabled|
-|SSH Authentication|Password + Key|Key Only|
-|Root SSH Login|Allowed|Disabled|
-|Administrative User|Root|Dedicated sudo user|
-|Automatic Updates|Disabled|Enabled|
-|Security Group|Multiple/Open Ports|Required Ports Only|
-|Brute Force Protection|None|Fail2Ban Enabled|
+| Password Authentication | Enabled | Disabled |
+| SSH Authentication | Password + Key | Key Only |
+| Root Login | Allowed | Disabled |
+| Administrative User | Root | Dedicated sudo user |
+| Automatic Updates | Disabled | Enabled |
+| Security Group | Multiple/Open Ports | Required Ports Only |
+| Brute Force Protection | None | Fail2Ban Enabled |
 
 ---
 
-# Validation Steps
+# Screenshots to Capture
 
-## Test SSH Login
-
-Attempt login without the private key.
-
-```bash
-ssh ec2-user@<Public-IP>
-```
-
-Expected:
-
-```
-Permission denied (publickey)
-```
+- SSH configuration (`sshd_config`)
+- New administrative user
+- Successful SSH login using the new user
+- SSH service status
+- Automatic updates service
+- Fail2Ban status
+- Security Group inbound rules
 
 ---
 
-## Test New Admin User
+# Justification for Every Configuration Choice
 
-```bash
-ssh -i my-key.pem adminuser@<Public-IP>
-```
-
-Expected:
-
-```
-Login Successful
-```
-
----
-
-## Verify Root Login
-
-```bash
-ssh root@<Public-IP>
-```
-
-Expected:
-
-```
-Permission denied
-```
+| Configuration | Justification |
+|--------------|---------------|
+| Key-Based Authentication | Eliminates password-based attacks and improves security. |
+| Disable Password Authentication | Prevents brute-force password attacks. |
+| Disable Root Login | Prevents direct administrative access. |
+| Dedicated Admin User | Follows the Principle of Least Privilege. |
+| Automatic Updates | Ensures security patches are installed regularly. |
+| Restricted Security Group | Reduces the attack surface by allowing only required traffic. |
+| Fail2Ban | Protects against repeated SSH login attempts and brute-force attacks. |
 
 ---
 
-## Verify Automatic Updates
+# AWS Security Best Practice
 
-```bash
-systemctl status dnf-automatic.timer
-```
+In production environments, AWS recommends combining operating system hardening with AWS security services such as:
 
-Expected:
+- Security Groups
+- IAM Roles
+- AWS Systems Manager Session Manager
+- AWS WAF
+- AWS Shield
+- Amazon GuardDuty
 
-```
-Active: active (waiting)
-```
-
----
-
-## Verify Fail2Ban
-
-```bash
-sudo fail2ban-client status sshd
-```
-
-Expected:
-
-```
-Status for the jail: sshd
-Currently banned: 0
-```
+Fail2Ban provides an additional layer of host-level protection and is commonly used for Linux server hardening.
 
 ---
 
-## Verify Security Group
+# Final Outcome
 
-Confirm only these ports are open:
+Successfully hardened an Amazon Linux 2023 EC2 instance by:
 
-- 22 (SSH) from your IP only
-- 80 (HTTP)
-- 443 (HTTPS)
+- Enabling key-based SSH authentication
+- Disabling password authentication
+- Disabling direct root login
+- Creating a dedicated administrative user
+- Configuring automatic security updates
+- Restricting Security Group access
+- Enabling Fail2Ban for SSH protection
+- Verifying all security configurations
 
-No unnecessary inbound ports should be exposed.
-
----
-
-# Lessons Learned
-
-- Key-based SSH authentication is significantly more secure than password-based authentication.
-- Disabling direct root login reduces the risk of unauthorized administrative access.
-- Creating a dedicated sudo user improves accountability and follows the principle of least privilege.
-- Automatic security updates help protect the system against newly discovered vulnerabilities.
-- Restricting Security Group rules minimizes the attack surface.
-- Fail2Ban helps mitigate brute-force attacks by temporarily banning repeated failed login attempts.
-- Combining OS-level hardening with AWS Security Groups provides a layered security approach.
+The EC2 instance is now more secure and follows AWS and Linux security best practices against unauthorized access and common attacks.
