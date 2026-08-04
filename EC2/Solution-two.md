@@ -2,7 +2,7 @@
 
 ## Objective
 
-Increase the available storage on a running EC2 instance without causing downtime or data loss.
+> Increase the available storage on a running EC2 instance without causing downtime or data loss.
 
 ---
 
