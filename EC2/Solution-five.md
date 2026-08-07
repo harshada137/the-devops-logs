@@ -316,4 +316,4 @@ i-xxxxxxxxxxxxxxxx
 
 # Conclusion
 
-A Golden AMI was successfully created from the configured EC2 instance. A second EC2 instance launched using the custom AMI retained the installed software and configurations, demonstrating that Golden AMIs provide a reliable and efficient way to standardize infrastructure deployment.
+> A Golden AMI was successfully created from the configured EC2 instance. A second EC2 instance launched using the custom AMI retained the installed software and configurations, demonstrating that Golden AMIs provide a reliable and efficient way to standardize infrastructure deployment.
